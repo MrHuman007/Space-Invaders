@@ -19,6 +19,13 @@ clock = pygame.time.Clock()
 Alien1 = pygame.image.load("alien1.png")
 Alien1 = pygame.transform.scale(Alien1,(50,50))
 timer = 0
+saCount = 0
+gameLoop = True
+mr=False
+ml=False
+
+def SpawnSuperAlien(x,y):
+  SuperAliensList.append(SuperAlien(x,y,pygame.image.load("superalien1.jpg"),75,50,3,True,3))
 
 def show_text(msg,x,y,color,size):
     fontobj= pygame.font.SysFont('freesans', size)
@@ -70,14 +77,16 @@ class Player(Alien):
         screen.blit(self.image,(self.x,self.y))
     def MovePlayerRight (self):
         self.x+=self.speed
-        if self.x > 450:
+        self.speed=7
+        if self.x >= 450:
             self.speed=0
-        self.speed=5
+        
     def MovePlayerLeft (self):
         self.x+=self.speed
-        if self.x < 0:
+        self.speed=-7
+        if self.x <= 0:
             self.speed=0
-        self.speed=-5
+        
 
 class Bullet(Alien):
     def __init__(self, x, y, image, length, width, speed, alive):
@@ -133,16 +142,18 @@ for y in range (1,6,1):
     alien=Alien(x*50,y*50,pic,25,25,2,True)
     AliensList.append(alien)
     
-while True:
+while gameLoop == True:
   screen.fill(black)
-  if timer > 1000:
+  if mr == True:
+    player.MovePlayerRight()
+    ml=False
+  if ml == True:
+    player.MovePlayerLeft()
+    mr=False
+  if timer > 1000 and saCount <= 3:
     timer=0
-    SuperAliensList.append(SuperAlien(50,50,pygame.image.load("superalien1.jpg"),75,50,3,True,3))
-  if len(AliensList)==-1:
-    screen.fill(white)
-    show_text("Game Over",250,500,red,20)
-    pygame.display.update()
-    break
+    saCount+=1
+    SpawnSuperAlien(50,50)
   for a in BulletList: 
     a.Move()
   for a in AliensList:
@@ -162,6 +173,13 @@ while True:
   for a in SuperAliensList:
     a.CheckCol()
   player.Draw()
+  for a in AliensList:
+    if a.y >= 775:
+      screen.fill(white)
+      show_text("Game Over",190,500,red,20)
+      pygame.display.update()
+      gameLoop=False
+      break
   clock.tick(50)
   timer+=1
 ##=============== EVENTS ============================
@@ -172,10 +190,15 @@ while True:
       sys.exit()
     if event.type == pygame.KEYDOWN:
       if event.key == pygame.K_d:
-        player.MovePlayerRight()
+        mr=True
       if event.key == pygame.K_a:
-        player.MovePlayerLeft()
+        ml=True
       if event.key == pygame.K_SPACE:
-        if len(BulletList) <= 0:
+        if len(BulletList) <= 1:
           BulletList.append(Bullet(player.x+23,800,pygame.image.load("bullet.png"),5,25,20,True))
           a.Draw()
+    if event.type == pygame.KEYUP:
+      if event.key == pygame.K_d:
+        mr=False
+      if event.key == pygame.K_a:
+        ml=False
